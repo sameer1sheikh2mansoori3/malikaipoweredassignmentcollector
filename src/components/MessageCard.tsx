@@ -1,55 +1,103 @@
+'use client';
+
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import Link from 'next/link';
+import axios, { AxiosError } from 'axios';
+import dayjs from 'dayjs';
+import { X } from 'lucide-react';
+import { Message } from '@/model/User';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from './ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { ApiResponse } from '@/types/ApiResponse';
 
-// Define the type for the message prop
-interface Message {
-  content: string;
-  _id: string;
-}
-
-// Define the type for the component props
-interface MessageCardProps {
+type MessageCardProps = {
   message: Message;
-  onMessageDelete: (id: string) => void;
-}
+  onMessageDelete: (messageId: string) => void;
+};
 
-export const MessageCard: React.FC<MessageCardProps> = ({ message, onMessageDelete }) => {
-  const { content, _id } = message;
-  const [rollNumber, assignmentLink, messageText] = content.split('||');
+export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
+  const { toast } = useToast();
 
-  // Ensure the assignment link has the correct protocol
-  const formattedLink = assignmentLink.trim().startsWith('http') ? assignmentLink.trim() : `https://${assignmentLink.trim()}`;
+  // Split the message content using '||' as the delimiter
+  const [rollNumber, assignmentLink, messageText] = message.content.split('||').map((s) => s.trim());
+
+  // Ensure the link starts with http:// or https://
+  const formattedAssignmentLink = assignmentLink.startsWith('http') ? assignmentLink : `http://${assignmentLink}`;
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const response = await axios.delete<ApiResponse>(
+        `/api/delete-message/${message._id}`
+      );
+      toast({
+        title: response.data.message,
+      });
+      onMessageDelete(message._id);
+
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      toast({
+        title: 'Error',
+        description:
+          axiosError.response?.data.message ?? 'Failed to delete message',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
-    <Card>
+    <Card className="card-bordered">
       <CardHeader>
-        <h3 className="text-xl font-semibold">Message</h3>
+        <div className="flex items-center justify-between">
+          <CardTitle>Roll Number: {rollNumber}</CardTitle>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant='destructive'>
+                <X className="w-5 h-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  this message.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm}>
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        <div className="text-sm">
+          {dayjs(message.createdAt).format('MMM D, YYYY h:mm A')}
+        </div>
       </CardHeader>
-      <CardContent className="flex flex-col space-y-4">
-        <div>
-          <strong>Roll Number:</strong> {rollNumber}
-        </div>
-        <div>
-          <Link href={formattedLink} target="_blank" rel="noopener noreferrer">
-            <Button>
-              Go to Assignment
-            </Button>
-          </Link>
-        </div>
-        <div>
-          <strong>Message:</strong> {messageText}
-        </div>
-        <div>
-          <Button
-            variant="destructive"
-            onClick={() => onMessageDelete(_id)}
-          >
-            Delete
+      <CardContent>
+        <a href={formattedAssignmentLink} target="_blank" rel="noopener noreferrer">
+          <Button>
+            Open Assignment
           </Button>
-        </div>
+        </a>
+        <p className="mt-2">{messageText}</p>
       </CardContent>
     </Card>
   );
-};
+}

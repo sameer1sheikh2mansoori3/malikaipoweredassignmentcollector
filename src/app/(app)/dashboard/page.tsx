@@ -23,17 +23,8 @@ function UserDashboard() {
 
   const { toast } = useToast();
 
-  const handleDeleteMessage = async (messageId: string) => {
-    try {
-      await axios.delete(`/api/messages/${messageId}`);
-      setMessages(messages.filter((message) => message._id !== messageId));
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete message',
-        variant: 'destructive',
-      });
-    }
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages(messages.filter((message) => message._id !== messageId));
   };
 
   const { data: session } = useSession();
@@ -70,12 +61,15 @@ function UserDashboard() {
       setIsSwitchLoading(false);
       try {
         const response = await axios.get<ApiResponse>('/api/get-messages');
-        const sortedMessages = response?.data?.messages?.sort((a, b) => {
+        
+        // Sort messages by roll number
+        const sortedMessages = (response.data.messages || []).sort((a, b) => {
           const rollNumberA = a.content.split('||')[0].trim();
           const rollNumberB = b.content.split('||')[0].trim();
           return rollNumberA.localeCompare(rollNumberB, undefined, { numeric: true });
         });
-        setMessages(sortedMessages || []);
+
+        setMessages(sortedMessages);
         if (refresh) {
           toast({
             title: 'Refreshed Messages',
@@ -113,7 +107,6 @@ function UserDashboard() {
       const response = await axios.post<ApiResponse>('/api/accept-messages', {
         acceptMessages: !acceptMessages,
       });
-     
       setValue('acceptMessages', !acceptMessages);
       toast({
         title: response.data.message,
@@ -181,29 +174,17 @@ function UserDashboard() {
       <Button
         className="mt-4"
         variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          fetchMessages(true);
-        }}
+        onClick={() => fetchMessages(true)}
+        disabled={isLoading}
       >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <RefreshCcw className="w-4 h-4" />
-        )}
+        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCcw className="w-4 h-4 mr-2" />}
+        Refresh Messages
       </Button>
-      <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
-        {messages.length > 0 ? (
-          messages.map((message) => (
-            <MessageCard
-              key={message._id}
-              message={message}
-              onMessageDelete={handleDeleteMessage}
-            />
-          ))
-        ) : (
-          <p>No messages to display.</p>
-        )}
+
+      <div className="mt-6 space-y-4">
+        {messages.map((message) => (
+          <MessageCard key={message._id} message={message} onMessageDelete={handleDeleteMessage} />
+        ))}
       </div>
     </div>
   );
