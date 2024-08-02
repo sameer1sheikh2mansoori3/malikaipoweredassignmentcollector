@@ -70,7 +70,7 @@ function UserDashboard() {
       setIsSwitchLoading(false);
       try {
         const response = await axios.get<ApiResponse>('/api/get-messages');
-        const sortedMessages = response.data.messages.sort((a, b) => {
+        const sortedMessages = response?.data?.messages?.sort((a, b) => {
           const rollNumberA = a.content.split('||')[0].trim();
           const rollNumberB = b.content.split('||')[0].trim();
           return rollNumberA.localeCompare(rollNumberB, undefined, { numeric: true });
