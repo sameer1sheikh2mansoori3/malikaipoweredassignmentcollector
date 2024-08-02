@@ -3,7 +3,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 
-export const MessageCard = ({ message, onMessageDelete }) => {
+// Define the type for the message prop
+interface Message {
+  content: string;
+  _id: string;
+}
+
+// Define the type for the component props
+interface MessageCardProps {
+  message: Message;
+  onMessageDelete: (id: string) => void;
+}
+
+export const MessageCard: React.FC<MessageCardProps> = ({ message, onMessageDelete }) => {
   const { content, _id } = message;
   const [rollNumber, assignmentLink, messageText] = content.split('||');
 
@@ -20,8 +32,8 @@ export const MessageCard = ({ message, onMessageDelete }) => {
           <strong>Roll Number:</strong> {rollNumber}
         </div>
         <div>
-          <Link href={formattedLink} passHref>
-            <Button  target="_blank" rel="noopener noreferrer">
+          <Link href={formattedLink} target="_blank" rel="noopener noreferrer">
+            <Button>
               Go to Assignment
             </Button>
           </Link>
