@@ -48,7 +48,9 @@ export default function Home() {
         </section>
         <section className='mx-auto my-auto'>
         <Link href="/sign-up">
-        <ShinyButton text="Join now" className="text-white bg-white"  />
+        <ShinyButton onClick={()=>{
+          
+        }} text="Join now" className="text-white bg-white"  />
        </Link>
         </section>
         
