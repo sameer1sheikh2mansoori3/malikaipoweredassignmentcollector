@@ -118,7 +118,7 @@ export default function SendMessage() {
                 <FormLabel>Send Anonymous Message to @{username}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Write your anonymous message here"
+                    placeholder="submit your response in rollNumber || assignmentLink || messageformat"
                     className="resize-none"
                     {...field}
                   />

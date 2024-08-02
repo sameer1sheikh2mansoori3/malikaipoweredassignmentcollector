@@ -1,90 +1,43 @@
-'use client'
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
-import React, { useState } from 'react';
-import axios, { AxiosError } from 'axios';
-import dayjs from 'dayjs';
-import { X } from 'lucide-react';
-import { Message } from '@/model/User';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from './ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { ApiResponse } from '@/types/ApiResponse';
+export const MessageCard = ({ message, onMessageDelete }) => {
+  const { content, _id } = message;
+  const [rollNumber, assignmentLink, messageText] = content.split('||');
 
-type MessageCardProps = {
-  message: Message;
-  onMessageDelete: (messageId: string) => void;
-};
-
-export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
-  const { toast } = useToast();
-
-  const handleDeleteConfirm = async () => {
-    try {
-      const response = await axios.delete<ApiResponse>(
-        `/api/delete-message/${message._id}`
-      );
-      toast({
-        title: response.data.message,
-      });
-      onMessageDelete(message._id);
-
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
-      toast({
-        title: 'Error',
-        description:
-          axiosError.response?.data.message ?? 'Failed to delete message',
-        variant: 'destructive',
-      });
-    } 
-  };
+  // Ensure the assignment link has the correct protocol
+  const formattedLink = assignmentLink.trim().startsWith('http') ? assignmentLink.trim() : `https://${assignmentLink.trim()}`;
 
   return (
-    <Card className="card-bordered">
+    <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>{message.content}</CardTitle>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant='destructive'>
-                <X className="w-5 h-5" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  this message.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteConfirm}>
-                  Continue
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-        <div className="text-sm">
-          {dayjs(message.createdAt).format('MMM D, YYYY h:mm A')}
-        </div>
+        <h3 className="text-xl font-semibold">Message</h3>
       </CardHeader>
-      <CardContent></CardContent>
+      <CardContent className="flex flex-col space-y-4">
+        <div>
+          <strong>Roll Number:</strong> {rollNumber}
+        </div>
+        <div>
+          <Link href={formattedLink} passHref>
+            <Button  target="_blank" rel="noopener noreferrer">
+              Go to Assignment
+            </Button>
+          </Link>
+        </div>
+        <div>
+          <strong>Message:</strong> {messageText}
+        </div>
+        <div>
+          <Button
+            variant="destructive"
+            onClick={() => onMessageDelete(_id)}
+          >
+            Delete
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   );
-}
+};
