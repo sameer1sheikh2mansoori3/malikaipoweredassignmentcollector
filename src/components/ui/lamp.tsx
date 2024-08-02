@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
@@ -16,7 +17,8 @@ export function LampDemo() {
         }}
         className="py-4 mt-8 text-2xl font-medium tracking-tight text-center text-transparent bg-gradient-to-br from-slate-300 to-slate-500 bg-clip-text md:text-7xl"
       >
-      Introducing <br /> India's first ai powered assignment collector
+      Introducing <br /> 
+      India's first ai powered assignment collector
       <br/>MALIK
       </motion.h1>
     </LampContainer>
